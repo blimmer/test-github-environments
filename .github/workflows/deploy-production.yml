@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - "main"
-    tags:
-      - "deploy/production/**"
 
 jobs:
   build-image:
@@ -13,6 +11,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Check if Docker Image Is Built
+        run: echo "Checking if Docker Image Is Built..." # If docker image is already built, we don't need to build it again (e.g., in the case of a rollback)
       - name: Build and Push Image
         run: echo "Building and pushing image"
 
