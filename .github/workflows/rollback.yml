@@ -1,0 +1,29 @@
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "The environment to rollback"
+        required: true
+        type: choice
+        options:
+          - production
+      commit:
+        description: "The commit to rollback to"
+        required: true
+
+jobs:
+  ensure-docker-image-is-built:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure Docker Image Is Built
+        run: echo "Ensuring Docker Image Is Built..."
+
+  rollback:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    needs: ensure-docker-image-is-built
+    steps:
+      - name: Rollback
+        run: echo "Rolling back to ${{ inputs.commit }}"
