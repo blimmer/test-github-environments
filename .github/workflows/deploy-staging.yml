@@ -1,21 +1,46 @@
 name: Staging Deploy
 
 on:
-  issue_comment:
+  pull_request:
     types:
-      - created
+      - labeled
+      - unlabeled
+      - synchronize
 
 jobs:
-  deploy-to-staging:
-    if: >-
-      github.event.issue.pull_request &&
-      format(github.event.comment.body) == 'deploy to staging'
+  deploy-main-to-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency: deploy-to-staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Bail if a PR already exists labeled 'deploying to staging'
+        run: echo "Bailing if a PR already exists labeled 'deploying to staging'"
+
+  deploy-branch-to-staging:
+    if: |
+      (github.event.action == 'labeled' && github.event.label.name == 'deploying to staging') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'deploying to staging'))
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency: deploy-to-staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check for Existing PRs labeled 'deploying to staging'
+        run: echo "Checking for existing PRs labeled 'deploying to staging'"
+      - name: Build Image
+        uses: ./.github/actions/build-image
+      - name: Deploy
+        uses: ./.github/actions/deploy
+
+  reset-staging:
+    if: github.event.action == 'unlabeled' && github.event.label.name == 'deploying to staging'
     runs-on: ubuntu-latest
     environment: staging
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Build Image
-        uses: ./.github/actions/build-image
-      - name: Deploy
-        uses: ./.github/actions/deploy
+      - name: Reset Staging
+        run: echo "Resetting staging by re-running the latest `main` staging deployment"
