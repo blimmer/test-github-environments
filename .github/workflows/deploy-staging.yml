@@ -1,25 +1,21 @@
-name: Production Deploy
+name: Staging Deploy
 
 on:
-  push:
-    branches:
-      - "main"
+  issue_comment:
+    types:
+      - created
 
 jobs:
-  build-image:
+  deploy-to-staging:
+    if: >-
+      github.event.issue.pull_request &&
+      format(github.event.comment.body) == 'deploy to staging'
     runs-on: ubuntu-latest
+    environment: staging
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build Image
         uses: ./.github/actions/build-image
-
-  deploy:
-    runs-on: ubuntu-latest
-    environment: production
-    needs: build-image
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Deploy
         uses: ./.github/actions/deploy
