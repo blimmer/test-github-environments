@@ -1,0 +1,25 @@
+name: Production Deploy
+
+on:
+  push:
+    branches:
+      - "main"
+    tags:
+      - "deploy/production/**"
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build and Push Image
+        run: echo "Building and pushing image"
+
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    needs: build-image
+    steps:
+      - name: Deploy
+        run: echo "Deploying"
